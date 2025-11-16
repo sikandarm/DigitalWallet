@@ -72,33 +72,40 @@ const actions = {
         
         try {
             const receiverResponse = await axios.get(`/api/users/email/${receiverEmail}`);
-            const receiverId = receiverResponse.data.id;
+            const receiverData = receiverResponse.data.data || receiverResponse.data;
+            const receiverId = receiverData.id;
+
+            if (!receiverId) {
+                throw new Error('Receiver not found');
+            }
 
             const response = await axios.post('/api/transactions', {
                 receiver_id: receiverId,
                 amount: amount,
             });
 
-            commit('SET_BALANCE', response.data.new_balance);
+            const responseData = response.data.data || response.data;
+            
+            commit('SET_BALANCE', responseData.new_balance);
             
             const transaction = {
-                id: response.data.transaction.id,
-                sender_id: response.data.transaction.sender_id,
-                receiver_id: response.data.transaction.receiver_id,
-                amount: response.data.transaction.amount,
-                commission_fee: response.data.transaction.commission_fee,
-                total_debited: response.data.transaction.total_debited,
-                created_at: response.data.transaction.created_at,
-                sender: response.data.transaction.sender,
-                receiver: response.data.transaction.receiver,
+                id: responseData.transaction.id,
+                sender_id: responseData.transaction.sender_id,
+                receiver_id: responseData.transaction.receiver_id,
+                amount: responseData.transaction.amount,
+                commission_fee: responseData.transaction.commission_fee,
+                total_debited: responseData.transaction.total_debited,
+                created_at: responseData.transaction.created_at,
+                sender: responseData.transaction.sender,
+                receiver: responseData.transaction.receiver,
             };
             
             commit('ADD_TRANSACTION', transaction);
-            commit('auth/UPDATE_USER_BALANCE', response.data.new_balance, { root: true });
+            commit('auth/UPDATE_USER_BALANCE', responseData.new_balance, { root: true });
 
             return {
                 success: true,
-                data: response.data,
+                data: responseData,
                 message: 'Transfer completed successfully!',
             };
         } catch (error) {
