@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'balance',
     ];
 
     /**
@@ -43,6 +45,34 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'balance' => 'decimal:2',
+            'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get all transactions where this user is the sender
+     */
+    public function sentTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'sender_id');
+    }
+
+    /**
+     * Get all transactions where this user is the receiver
+     */
+    public function receivedTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'receiver_id');
+    }
+
+    /**
+     * Get all transactions (both sent and received)
+     */
+    public function transactions()
+    {
+        return Transaction::where('sender_id', $this->id)
+            ->orWhere('receiver_id', $this->id)
+            ->orderBy('created_at', 'desc');
     }
 }
