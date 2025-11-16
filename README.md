@@ -169,3 +169,6 @@ All endpoints require authentication via Laravel Sanctum.
 - Private channels per user (`user.{userId}`)
 - Vue.js listens for `transaction.completed` events
 - Automatic UI updates without page refresh
+
+### Note
+- As per the Transaction API requirements, a receiver ID is mandatory, and I have implemented it accordingly. However, from a UI perspective, I have included the email for usability. Ideally, this should be either a dropdown selection or an email input, which will then be used to send data to the backend.
